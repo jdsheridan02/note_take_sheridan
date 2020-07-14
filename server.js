@@ -4,6 +4,8 @@ const express = require ("express"),
     fs = require ("fs"),
     app = express();
     PORT = process.env.PORT || 3000;
+const { v4: uuidv4 } = require('uuid');
+    
 
 
 //set up body parsing, static and route middleware.
@@ -35,7 +37,7 @@ app.post('/api/notes', function (req, res) {
   console.log("*****");
   const newNote = req.body;
   console.log(req.body);
-  newNote.id = String(notes.length);
+  newNote.id = uuidv4();
   notes.push(newNote);
   // rewrite to notes file
   fs.writeFileSync(__dirname + '/db/db.json', JSON.stringify(notes));
@@ -44,18 +46,23 @@ app.post('/api/notes', function (req, res) {
 });
 
 
-// app.delete('/api/notes/:id', function (req, res) {
-//   var id = req.params.id;
-//   // read db.json and convert it to an array of notes
-//   const deleted = JSON.parse(fs.readFileSync(__dirname + '/db/db.json'));
+app.delete('/api/notes/:id', function (req, res) {
+  var id = req.params.id;
+  // read db.json and convert it to an array of notes
+  const deleteNotes = JSON.parse(fs.readFileSync(__dirname + '/db/db.json'));
 
-//   // remove the note by its id
-//   id
+  // remove the note by its id
+  let newData = deleteNotes.filter(function(notes){
+    return notes.id != req.params.id;
+  });
+  console.log(newData);
 
-//   // rewrite to the notes files
-//   fs.writeFileSync(__dirname + '/db/db.json', JSON.stringify(notes));
-//   // send notes as JSON data back to the client
-// });
+  // rewrite to the notes files, send notes as JSON data back to the client
+  fs.writeFileSync('./db/db.json', JSON.stringify(newData));
+
+  // sending our notes as JSON data back to the client
+  res.json(newData);
+});
 
 
 app.listen(PORT, function() {
